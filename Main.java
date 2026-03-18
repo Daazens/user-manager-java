@@ -28,11 +28,28 @@ class User {
 	}
 }
 
+class UserDTO {
+	public int idx;
+	public String name;
+
+	UserDTO(int idx, String name){
+		this.idx = idx;
+		this.name = name;
+	}
+
+	public String toString() {
+		return "=================\nid   : " + idx + "\n" + "name : " + name;
+	}
+}
 class UserRepository {
 	private ArrayList<User> users = new ArrayList<>();
-
+	private ArrayList<UserDTO> usersDTO = new ArrayList<>();
 	void saveEntity(User user) {
 		users.add(user);
+	}
+
+	void saveDTO(UserDTO DTO) {
+		usersDTO.add(DTO);
 	}
 
 	void remove(User user) {
@@ -49,10 +66,10 @@ class UserRepository {
 	}
 
 	void show() {
-		if (users.isEmpty()) {
+		if (usersDTO.isEmpty()) {
 			System.out.println("No User added");
 		}
-		for (User u : users) {
+		for (UserDTO u : usersDTO) {
 			System.out.println(u);
 		}
 	}
@@ -63,6 +80,10 @@ class UserService {
 
 	void createUser(User user) {
 		repo.saveEntity(user);
+	}
+
+	void createDTO(UserDTO DTO) {
+		repo.saveDTO(DTO);
 	}
 
 	boolean isPassable(User user) {
@@ -91,9 +112,12 @@ public class Main {
 	UserService service = new UserService();
 
 	void registerUser() {
-		User user = new User(idQounter++, "d", "");
+		String name = "Bot";
+		User user = new User(idQounter++, name, "jk");
+		UserDTO DTO = new UserDTO(idQounter, name);
 		if (service.isPassable(user)) {
 			service.createUser(user);
+			service.createDTO(DTO);
 		}
 		else {
 			System.out.println("Invalid");
