@@ -4,11 +4,13 @@ class User {
 	private String name;
 	private String password;
 	private int id;
+	private String email;
 
-	public User(int id, String name, String password) {
+	public User(int id, String name, String email, String password) {
 		this.id = id;
 		this.name = name;
 		this.password = password;
+		this.email = email;
 	}
 
 	public int getId() {
@@ -23,22 +25,28 @@ class User {
 		return password;
 	}
 
+	public String getEmail() {
+		return email;
+	}
+
 	public String toString() {
 		return "[" + id + "] " + name + " | " + password;
 	}
 }
 
 class UserDTO {
-	public int idx;
-	public String name;
+	private int idx;
+	private String name;
+	private String email;
 
-	UserDTO(int idx, String name){
+	UserDTO(int idx, String name, String email){
 		this.idx = idx;
 		this.name = name;
+		this.email = email;
 	}
 
 	public String toString() {
-		return "=================\nid   : " + idx + "\n" + "name : " + name;
+		return "=================\nid   : " + idx + "\nname : " + name + "\nemail: " + email;
 	}
 }
 class UserRepository {
@@ -78,16 +86,21 @@ class UserRepository {
 class UserService {
 	UserRepository repo = new UserRepository();
 
-	void createUser(User user) {
-		repo.saveEntity(user);
-	}
-
-	void createDTO(UserDTO DTO) {
-		repo.saveDTO(DTO);
+	void createUser(User user, UserDTO DTO) {
+		if (isPassable(user)) {
+			repo.saveDTO(DTO);
+			repo.saveEntity(user);
+		}
+		else {
+			System.out.println("Invalid");
+		}
 	}
 
 	boolean isPassable(User user) {
-		return user.getName() != "" && user.getPassword() != "";
+		return  !user.getName().isEmpty() &&
+			!user.getPassword().isEmpty() &&
+			user.getPassword().length() >= 5 &&
+			user.getEmail().contains("@");
 	}
 
 	void deleteUser(int id) {
@@ -108,20 +121,16 @@ class UserService {
 
 
 public class Main {
-	private int idQounter = 1;
+	private int idQounter = 0;
 	UserService service = new UserService();
 
 	void registerUser() {
 		String name = "Bot";
-		User user = new User(idQounter++, name, "jk");
-		UserDTO DTO = new UserDTO(idQounter, name);
-		if (service.isPassable(user)) {
-			service.createUser(user);
-			service.createDTO(DTO);
-		}
-		else {
-			System.out.println("Invalid");
-		}
+		String email = "daz@.com";
+		String password = "12iii2";
+		User user = new User(idQounter++, name, email, password);
+		UserDTO DTO = new UserDTO(idQounter, name, email);
+		service.createUser(user, DTO);
 	}
 
 	void unregistUser() {
@@ -138,7 +147,7 @@ public class Main {
 		n.registerUser();
 		n.registerUser();
 		n.displayUser();
-		n.unregistUser();
+//		n.unregistUser();
 		n.displayUser();
 		System.out.println("under construction!");
 	}
