@@ -30,34 +30,59 @@ class User {
 	}
 
 	public String toString() {
-		return "[" + id + "] " + name + " | " + password;
+		return "==============\nid   : " + id + "\nname : " + 
+			name + "\nemail: " + email + "\npass : " + password;
 	}
 }
-
-class UserDTO {
-	private int idx;
+class UserResponseDTO {
 	private String name;
 	private String email;
 
-	UserDTO(int idx, String name, String email){
-		this.idx = idx;
+	UserResponseDTO(String name, String email) {
 		this.name = name;
 		this.email = email;
 	}
 
 	public String toString() {
-		return "=================\nid   : " + idx + "\nname : " + name + "\nemail: " + email;
+		return "===========\nname : " + name + "\nemail: " + email;
 	}
 }
-class UserRepository {
-	private ArrayList<User> users = new ArrayList<>();
-	private ArrayList<UserDTO> usersDTO = new ArrayList<>();
-	void saveEntity(User user) {
-		users.add(user);
+
+class UserRequestDTO {
+	private int id;
+	private String name;
+	private String email;
+	private String password;
+
+	UserRequestDTO(int id, String name, String email, String password) {
+		this.id = id;
+		this.name = name;
+		this.email = email;
+		this.password = password;
 	}
 
-	void saveDTO(UserDTO DTO) {
-		usersDTO.add(DTO);
+	public int getId() {
+		return id;
+	}
+
+	public String getName() {
+		return name;
+	}
+
+	public String getEmail() {
+		return email;
+	}
+
+	public String getPassword() {
+		return password;
+	}
+}
+
+class UserRepository {
+	private ArrayList<User> users = new ArrayList<>();
+
+	void saveEntity(User user) {
+		users.add(user);
 	}
 
 	void remove(User user) {
@@ -73,12 +98,27 @@ class UserRepository {
 		return null;
 	}
 
+	void showUser(int id) {
+		User u = findById(id);
+		if (u != null) {
+
+			UserResponseDTO dto = new UserResponseDTO(u.getName(), u.getEmail());
+			System.out.println(dto);
+		}
+
+		else {
+			System.out.println("Invalid");
+		}
+	}
+
+
 	void show() {
-		if (usersDTO.isEmpty()) {
+		if (users.isEmpty()) {
 			System.out.println("No User added");
 		}
-		for (UserDTO u : usersDTO) {
-			System.out.println(u);
+		for (User u : users) {
+			UserResponseDTO dto = new UserResponseDTO(u.getName(), u.getEmail());
+			System.out.println(dto);
 		}
 	}
 }
@@ -86,9 +126,9 @@ class UserRepository {
 class UserService {
 	UserRepository repo = new UserRepository();
 
-	void createUser(User user, UserDTO DTO) {
-		if (isPassable(user)) {
-			repo.saveDTO(DTO);
+	void createUser(UserRequestDTO users) {
+		if (isPassable(users)) {
+			User user = new User(users.getId(), users.getName(), users.getEmail(), users.getPassword());
 			repo.saveEntity(user);
 		}
 		else {
@@ -96,7 +136,7 @@ class UserService {
 		}
 	}
 
-	boolean isPassable(User user) {
+	boolean isPassable(UserRequestDTO user) {
 		return  !user.getName().isEmpty() &&
 			!user.getPassword().isEmpty() &&
 			user.getPassword().length() >= 5 &&
@@ -116,21 +156,24 @@ class UserService {
 	void getUser() {
 		repo.show();
 	}
+
+	void getThatOneUser(int id) {
+		repo.showUser(id);
+	}
 }
 
 
 
 public class Main {
-	private int idQounter = 0;
+	private int idQounter = 1;
 	UserService service = new UserService();
 
 	void registerUser() {
 		String name = "Bot";
 		String email = "daz@.com";
 		String password = "12iii2";
-		User user = new User(idQounter++, name, email, password);
-		UserDTO DTO = new UserDTO(idQounter, name, email);
-		service.createUser(user, DTO);
+		UserRequestDTO userDTO = new UserRequestDTO(idQounter++, name, email, password);
+		service.createUser(userDTO);
 	}
 
 	void unregistUser() {
@@ -141,14 +184,19 @@ public class Main {
 		service.getUser();
 	}
 
+	void searchUser() {
+		service.getThatOneUser(3);
+	}
+
 	public static void main(String[] args) {
 		Main n = new Main();
 		n.registerUser();
 		n.registerUser();
 		n.registerUser();
 		n.displayUser();
-//		n.unregistUser();
+		n.unregistUser();
 		n.displayUser();
+		n.searchUser();
 		System.out.println("under construction!");
 	}
 }
