@@ -44,7 +44,7 @@ class UserResponseDTO {
 	}
 
 	public String toString() {
-		return "===========\nname : " + name + "\nemail: " + email;
+		return "\nname : " + name + "\nemail: " + email + "\n";
 	}
 }
 
@@ -77,11 +77,26 @@ class UserRequestDTO {
 		return password;
 	}
 }
+class ApiResponse<T> {
+	String status;
+	String message;
+	T data;
+
+	ApiResponse(String status, String message, T data) {
+		this.status = status;
+		this.message = message;
+		this.data = data;
+	}
+
+	public String toString() {
+		return "status = " + status + "\nmessage = " + message + "\ndata = " + data;
+	}
+}
 
 class UserRepository {
 	private ArrayList<User> users = new ArrayList<>();
 
-	void saveEntity(User user) {
+	void save(User user) {
 		users.add(user);
 	}
 
@@ -98,105 +113,147 @@ class UserRepository {
 		return null;
 	}
 
-	void showUser(int id) {
-		User u = findById(id);
-		if (u != null) {
-
-			UserResponseDTO dto = new UserResponseDTO(u.getName(), u.getEmail());
-			System.out.println(dto);
-		}
-
-		else {
-			System.out.println("Invalid");
-		}
+	ArrayList<User> findAll() {
+		return users;
 	}
 
-
-	void show() {
-		if (users.isEmpty()) {
-			System.out.println("No User added");
-		}
-		for (User u : users) {
-			UserResponseDTO dto = new UserResponseDTO(u.getName(), u.getEmail());
-			System.out.println(dto);
-		}
-	}
+	
 }
 
 class UserService {
-	UserRepository repo = new UserRepository();
+	private UserRepository repo;
 
-	void createUser(UserRequestDTO users) {
-		if (isPassable(users)) {
+	UserService(UserRepository repo) {
+		this.repo = repo;
+	}
+
+	UserResponseDTO createUser(UserRequestDTO users) {
+		if (isValid(users)) {
 			User user = new User(users.getId(), users.getName(), users.getEmail(), users.getPassword());
-			repo.saveEntity(user);
+			UserResponseDTO dto  = mapToResponse(user);
+			repo.save(user);
+			return dto;
 		}
 		else {
-			System.out.println("Invalid");
+			return null;
 		}
 	}
 
-	boolean isPassable(UserRequestDTO user) {
+	UserResponseDTO mapToResponse(User u) {
+		return new UserResponseDTO(u.getName(), u.getEmail());
+	}
+
+	boolean isValid(UserRequestDTO user) {
 		return  !user.getName().isEmpty() &&
 			!user.getPassword().isEmpty() &&
 			user.getPassword().length() >= 5 &&
-			user.getEmail().contains("@");
+			user.getEmail().contains("@email.com");
 	}
 
-	void deleteUser(int id) {
+	UserResponseDTO deleteUser(int id) {
 		User u = repo.findById(id);
 		if (u != null) {
+			UserResponseDTO dto = mapToResponse(u);
 			repo.remove(u);
+			return dto;
 		}
 		else {
-			System.out.println("Invalid");
+			return null;
 		}
 	}
 
-	void getUser() {
-		repo.show();
+	UserResponseDTO getUser() {
+		ArrayList<User> users = repo.findAll();
+
+		for (User u : users) {
+			UserResponseDTO dto = mapToResponse(u);
+			return dto;
+		}
+		return null;
 	}
 
-	void getThatOneUser(int id) {
-		repo.showUser(id);
+	UserResponseDTO getThatOneUser(int id) {
+		User u = repo.findById(id);
+		if (u != null) {
+			UserResponseDTO dto = mapToResponse(u);
+			return dto;
+		}
+		else {
+			return null;
+		}
 	}
+
 }
 
 
 
 public class Main {
 	private int idQounter = 1;
-	UserService service = new UserService();
+	UserRepository repo = new UserRepository();
+	UserService service = new UserService(repo);
 
-	void registerUser() {
+	ApiResponse<UserResponseDTO> registerUser() {
 		String name = "Bot";
-		String email = "daz@.com";
-		String password = "12iii2";
+		String email = "daz@email.com";
+		String password = "12i2fk"; 
 		UserRequestDTO userDTO = new UserRequestDTO(idQounter++, name, email, password);
 		service.createUser(userDTO);
+		UserResponseDTO dto = service.createUser(userDTO);
+		 if (dto != null) {
+			 return new ApiResponse<>("success", "created", dto);
+		 }
+		 else { return new ApiResponse<>("error", "invalid", null);
+		 }
+		
 	}
 
-	void unregistUser() {
-		service.deleteUser(1);
+	ApiResponse<UserResponseDTO> unregistUser() {
+		UserResponseDTO dto = service.deleteUser(1);
+		if (dto != null) {
+			return new ApiResponse<>("success", "deleted", dto);
+		}
+		else {
+			return new ApiResponse<>("error", "not found", dto);
+		}
 	}
 
 	void displayUser() {
 		service.getUser();
 	}
 
-	void searchUser() {
-		service.getThatOneUser(3);
+	ApiResponse<UserResponseDTO> searchUser() {
+		UserResponseDTO dto = service.getThatOneUser(2);
+		if (dto != null) {
+			return new ApiResponse<>("success", "found", dto);
+		}
+		else {
+			return new ApiResponse<>("error", "not found", null);
+		}
 	}
+
+	void wrapperResponse(ApiResponse<?> response) {
+		System.out.println("Status : " + response.status);
+		System.out.println("Message: " + response.message);
+		if (response.data != null) {
+			System.out.println("Data   : " + response.data);
+		}
+		else {
+			System.out.println("Data   : " + response.data);
+		}
+	}
+
 
 	public static void main(String[] args) {
 		Main n = new Main();
+		ApiResponse<UserResponseDTO> t = n.registerUser();
+		n.wrapperResponse(t);
 		n.registerUser();
 		n.registerUser();
-		n.registerUser();
+		ApiResponse<UserResponseDTO> e = n.unregistUser();
+		n.wrapperResponse(e);
 		n.displayUser();
-		n.unregistUser();
-		n.displayUser();
-		n.searchUser();
+		ApiResponse<UserResponseDTO> r = n.searchUser();
+		n.wrapperResponse(r);
 		System.out.println("under construction!");
 	}
 }
