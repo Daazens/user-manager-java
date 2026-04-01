@@ -31,7 +31,8 @@ public class UserService {
 	}
 
 	boolean isValid(RequestDTO user) {
-		return user.getEmail().contains("@") && user.getPass().length() >= 5;
+		return user.getEmail().contains("@") && user.getPass().length() >= 5 &&
+			!user.getName().isBlank();
 	}
 
 	public ResponseDTO deleteUser(int id) {

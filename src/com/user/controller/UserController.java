@@ -12,7 +12,7 @@ import com.user.service.UserService;
 public class UserController {
 	Scanner sc;
 	UserService service;
-	int idQounter = 1;
+	public int idQounter = 1;
 
 	public UserController(UserService service, Scanner sc) {
 		this.service = service;
@@ -21,6 +21,8 @@ public class UserController {
 
 	public WrapperResponse<ResponseDTO> registUser() {
 		sc.nextLine();
+		System.out.println("email must be contain '@'");
+		System.out.println("password length must be more than 5");
 		System.out.print("Name    : ");
 		String name = sc.nextLine();
 		System.out.print("email   : ");
